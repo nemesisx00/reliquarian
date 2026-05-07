@@ -1,11 +1,14 @@
 use data::constants::TextColor;
 use data::enums::DataChannel;
+use data::io::saveAppSettings;
 use data::settings::AppSettings;
 use freya::icons::lucide;
 use freya::prelude::{Alignment, Checkbox, ChildrenExt, Component, ContainerExt,
 	ContainerSizeExt, ContainerWithContentExt, Content, Direction, Gaps, Input,
-	IntoElement, Size, Tile, WritableUtils, rect, use_side_effect, use_state};
+	IntoElement, Size, Tile, WritableUtils, rect, spawn, use_side_effect,
+	use_state};
 use freya::radio::{Writable, use_radio};
+use tracing::{info, warn};
 use crate::button::icon::IconButton;
 
 #[derive(Clone, PartialEq)]
@@ -30,7 +33,17 @@ impl Component for AchievementsFilter
 		let nameOnly = filterCriteria().nameOnly;
 		let search = self.search.clone();
 		
-		use_side_effect(move || appSettings.write().filterCriteria = filterCriteria());
+		use_side_effect(move || {
+			appSettings.write().filterCriteria = filterCriteria();
+			
+			spawn(async move {
+				match saveAppSettings(&appSettings.read())
+				{
+					Err(e) => warn!("[Reliquarian] Error saving app settings: {:?}", e),
+					Ok(_) => info!("[Reliquarian] Saved app settings"),
+				}
+			});
+		});
 		
 		return rect()
 			.direction(Direction::Vertical)

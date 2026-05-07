@@ -13,6 +13,8 @@ impl Component for Rpcs3ContentElement
 	fn render(&self) -> impl IntoElement
 	{
 		use_init_radio_station::<Option<String>, GamePlatforms>(Default::default);
+		// Game search value
+		use_init_radio_station::<String, GamePlatforms>(Default::default);
 		
 		let selectedGameId = use_radio::<Option<String>, GamePlatforms>(GamePlatforms::Rpcs3);
 		

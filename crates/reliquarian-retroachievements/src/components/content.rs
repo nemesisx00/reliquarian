@@ -13,6 +13,8 @@ impl Component for RetroAchievementsContent
 	fn render(&self) -> impl IntoElement
 	{
 		use_init_radio_station::<Option<u64>, GamePlatforms>(Default::default);
+		// Game search value
+		use_init_radio_station::<String, GamePlatforms>(Default::default);
 		
 		let selectedGameId = use_radio::<Option<u64>, GamePlatforms>(GamePlatforms::RetroAchievements);
 		

@@ -19,3 +19,4 @@ pub enum GamePlatforms
 
 impl RadioChannel<Option<String>> for GamePlatforms {}
 impl RadioChannel<Option<u64>> for GamePlatforms {}
+impl RadioChannel<String> for GamePlatforms {}

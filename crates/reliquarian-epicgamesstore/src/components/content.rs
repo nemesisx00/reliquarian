@@ -13,6 +13,8 @@ impl Component for EgsContentElement
 	fn render(&self) -> impl IntoElement
 	{
 		use_init_radio_station::<Option<String>, GamePlatforms>(Option::default);
+		// Game search value
+		use_init_radio_station::<String, GamePlatforms>(Default::default);
 		
 		let selectedGameId = use_radio::<Option<String>, GamePlatforms>(GamePlatforms::EpicGamesStore);
 		let selectedElement: Option<Element> = match selectedGameId.read().clone()

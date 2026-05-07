@@ -20,7 +20,7 @@ use freya::prelude::{AccessibilityExt, Alignment, Border, BorderAlignment,
 	LayerExt, Position, ProgressBar, ProgressBarThemePartialExt, ScrollConfig,
 	ScrollPosition, Size, Span, StyleExt, TextAlign, TextStyleExt,
 	VirtualScrollView, label, paragraph, rect, svg, use_scroll_controller,
-	use_state};
+	use_side_effect, use_state};
 use freya::radio::use_radio;
 use macros::{join, png};
 use crate::api::RetroAchievementsApi;
@@ -37,16 +37,21 @@ impl Component for GameList
 	fn render(&self) -> impl IntoElement
 	{
 		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
+		let mut gameSearch = use_radio::<String, GamePlatforms>(GamePlatforms::RetroAchievements);
 		let user = use_radio::<RetroAchievementsUser, GamePlatforms>(GamePlatforms::RetroAchievements);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		let search = use_state(String::default);
+		let search = use_state(|| gameSearch.read().clone());
 		
 		let games = user.read().filter(
 			search.read().clone(),
 			appSettings.read().filterCriteria
 		);
 		let gamesLength = games.len();
+		
+		use_side_effect(move || {
+			**gameSearch.write() = search.read().clone();
+		});
 		
 		return rect()
 			.content(Content::Flex)

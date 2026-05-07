@@ -13,7 +13,8 @@ use freya::prelude::{Alignment, Border, BorderAlignment, ChildrenExt, Code,
 	Content, Direction, Event, EventHandlersExt, FontWeight, Gaps, ImageViewer,
 	IntoElement, KeyboardEventData, ProgressBar, ProgressBarThemePartialExt,
 	ScrollConfig, ScrollPosition, Size, Span, StyleExt, TextAlign, TextStyleExt,
-	VirtualScrollView, label, paragraph, rect, use_scroll_controller, use_state};
+	VirtualScrollView, label, paragraph, rect, use_scroll_controller,
+	use_side_effect, use_state};
 use freya::radio::use_radio;
 use macros::{join, jpg};
 use crate::api::SteamApi;
@@ -27,16 +28,21 @@ impl Component for GameList
 	fn render(&self) -> impl IntoElement
 	{
 		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
+		let mut gameSearch = use_radio::<String, GamePlatforms>(GamePlatforms::Steam);
 		let user = use_radio::<SteamUser, GamePlatforms>(GamePlatforms::Steam);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		let search = use_state(String::default);
+		let search = use_state(|| gameSearch.read().clone());
 		
 		let games = user.read().filter(
 			search.read().clone(),
 			appSettings.read().filterCriteria
 		);
 		let gamesLength = games.len();
+		
+		use_side_effect(move || {
+			**gameSearch.write() = search.read().clone();
+		});
 		
 		return rect()
 			.content(Content::Flex)

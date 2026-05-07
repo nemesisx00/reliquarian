@@ -8,12 +8,7 @@ use data::enums::{DataChannel, GamePlatforms};
 use data::filter::Filterable;
 use data::io::{FileLocation, filePathExists, getImagePath};
 use data::settings::AppSettings;
-use freya::prelude::{Alignment, Border, BorderAlignment, ChildrenExt, Code,
-	Color, Component, ContainerExt, ContainerSizeExt, ContainerWithContentExt,
-	Content, Direction, Event, EventHandlersExt, FontWeight, Gaps, ImageViewer,
-	IntoElement, KeyboardEventData, ProgressBar, ProgressBarThemePartialExt,
-	ScrollConfig, ScrollPosition, Size, Span, StyleExt, TextAlign, TextStyleExt,
-	VirtualScrollView, label, paragraph, rect, use_scroll_controller, use_state};
+use freya::prelude::{Alignment, Border, BorderAlignment, ChildrenExt, Code, Color, Component, ContainerExt, ContainerSizeExt, ContainerWithContentExt, Content, Direction, Event, EventHandlersExt, FontWeight, Gaps, ImageViewer, IntoElement, KeyboardEventData, ProgressBar, ProgressBarThemePartialExt, ScrollConfig, ScrollPosition, Size, Span, StyleExt, TextAlign, TextStyleExt, VirtualScrollView, label, paragraph, rect, use_scroll_controller, use_side_effect, use_state};
 use freya::radio::use_radio;
 use macros::{join, jpg};
 use crate::api::GogApi;
@@ -27,10 +22,11 @@ impl Component for GameList
 	fn render(&self) -> impl IntoElement
 	{
 		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
+		let mut gameSearch = use_radio::<String, GamePlatforms>(GamePlatforms::Gog);
 		let user = use_radio::<GogUser, GamePlatforms>(GamePlatforms::Gog);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		let search = use_state(String::default);
+		let search = use_state(|| gameSearch.read().clone());
 		
 		let games = user.read().filter(
 			search.read().clone(),
@@ -38,6 +34,10 @@ impl Component for GameList
 		);
 		
 		let gamesLength = games.len();
+		
+		use_side_effect(move || {
+			**gameSearch.write() = search.read().clone();
+		});
 		
 		return rect()
 			.content(Content::Flex)

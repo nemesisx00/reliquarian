@@ -4,9 +4,10 @@ use components::input::filter::GamesFilter;
 use data::constants::{BorderColor, ButtonBackgroundColor, CornerRadius,
 	Path_Games, RetroAchievementsProgressColorBackground,
 	RetroAchievementsProgressColorHardcore};
-use data::enums::GamePlatforms;
-use data::filter::{FilterCriteria, Filterable};
+use data::enums::{DataChannel, GamePlatforms};
+use data::filter::Filterable;
 use data::io::{FileLocation, filePathExists, getImagePath};
+use data::settings::AppSettings;
 use freya::prelude::{Alignment, Border, BorderAlignment, ChildrenExt, Code,
 	Color, Component, ContainerExt, ContainerSizeExt, ContainerWithContentExt,
 	Content, Direction, Event, EventHandlersExt, FontWeight, Gaps, ImageViewer,
@@ -25,18 +26,16 @@ impl Component for GameList
 {
 	fn render(&self) -> impl IntoElement
 	{
+		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
 		let user = use_radio::<Rpcs3User, GamePlatforms>(GamePlatforms::Rpcs3);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		let caseSensitive = use_state(bool::default);
 		let search = use_state(String::default);
 		
-		let games = user.read().filter(FilterCriteria
-		{
-			caseSensitive: caseSensitive(),
-			text: search.read().clone(),
-			..Default::default()
-		});
+		let games = user.read().filter(
+			search.read().clone(),
+			appSettings.read().filterCriteria
+		);
 		
 		let gamesLength = games.len();
 		
@@ -65,7 +64,7 @@ impl Component for GameList
 			)
 			
 			.child(
-				GamesFilter::new(caseSensitive, search)
+				GamesFilter::new(search)
 					.margin(Gaps::new(5.0, 0.0, 0.0, 0.0))
 					.width(Size::percent(50.0))
 			)

@@ -1,5 +1,6 @@
 use anyhow::Result;
-use data::{enums::GamePlatforms, filter::{FilterCriteria, Filterable}};
+use data::enums::GamePlatforms;
+use data::filter::{FilterCriteria, Filterable};
 use freya::radio::RadioChannel;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -22,15 +23,16 @@ pub struct Rpcs3User
 
 impl Filterable<Game> for Rpcs3User
 {
-	fn filter(&self, filter: impl Into<FilterCriteria>) -> Vec<Game>
+	fn filter(&self, text: impl Into<String>, filter: impl Into<FilterCriteria>) -> Vec<Game>
 	{
 		let filter = filter.into();
+		let text = text.into();
 		
 		let caseSensitive = filter.caseSensitive;
 		let search = match caseSensitive
 		{
-			false => filter.text.to_lowercase(),
-			true => filter.text.clone(),
+			false => text.to_lowercase(),
+			true => text.clone(),
 		};
 		
 		let mut games = self.games.iter()

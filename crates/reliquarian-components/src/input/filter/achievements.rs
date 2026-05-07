@@ -1,18 +1,17 @@
 use data::constants::TextColor;
+use data::enums::DataChannel;
+use data::settings::AppSettings;
 use freya::icons::lucide;
 use freya::prelude::{Alignment, Checkbox, ChildrenExt, Component, ContainerExt,
 	ContainerSizeExt, ContainerWithContentExt, Content, Direction, Gaps, Input,
-	IntoElement, Size, Tile, WritableUtils, rect, use_state};
-use freya::radio::Writable;
+	IntoElement, Size, Tile, WritableUtils, rect, use_side_effect, use_state};
+use freya::radio::{Writable, use_radio};
 use crate::button::icon::IconButton;
 
 #[derive(Clone, PartialEq)]
 pub struct AchievementsFilter
 {
-	caseSensitive: Writable<bool>,
-	locked: Writable<bool>,
 	margin: Gaps,
-	nameOnly: Writable<bool>,
 	search: Writable<String>,
 	width: Size,
 }
@@ -21,12 +20,17 @@ impl Component for AchievementsFilter
 {
 	fn render(&self) -> impl IntoElement
 	{
+		let mut appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
+		
+		let mut filterCriteria = use_state(|| appSettings.read().filterCriteria);
 		let mut showAdvanced = use_state(bool::default);
 		
-		let caseSensitive = self.caseSensitive.clone();
-		let locked = self.locked.clone();
-		let nameOnly = self.nameOnly.clone();
+		let caseSensitive = filterCriteria().caseSensitive;
+		let locked = filterCriteria().locked;
+		let nameOnly = filterCriteria().nameOnly;
 		let search = self.search.clone();
+		
+		use_side_effect(move || appSettings.write().filterCriteria = filterCriteria());
 		
 		return rect()
 			.direction(Direction::Vertical)
@@ -68,48 +72,30 @@ impl Component for AchievementsFilter
 					.child(
 						Tile::new()
 							.leading("Locked Only")
-							.on_select({
-								let mut locked = locked.clone();
-								move |_| {
-									let value = !*locked.read();
-									locked.set(value);
-								}
-							})
+							.on_select(move |_| filterCriteria.write().locked = !locked)
 							.child(
 								Checkbox::new()
-									.selected(*locked.read())
+									.selected(locked)
 							)
 					)
 					
 					.child(
 						Tile::new()
 							.leading("Case Sensitive")
-							.on_select({
-								let mut caseSensitive = caseSensitive.clone();
-								move |_| {
-									let value = !*caseSensitive.read();
-									caseSensitive.set(value);
-								}
-							})
+							.on_select(move |_| filterCriteria.write().caseSensitive = !caseSensitive)
 							.child(
 								Checkbox::new()
-									.selected(*caseSensitive.read())
+									.selected(caseSensitive)
 							)
 					)
 					
 					.child(
 						Tile::new()
 							.leading("Name Only")
-							.on_select({
-								let mut nameOnly = nameOnly.clone();
-								move |_| {
-									let value = !*nameOnly.read();
-									nameOnly.set(value);
-								}
-							})
+							.on_select(move |_| filterCriteria.write().nameOnly = !nameOnly)
 							.child(
 								Checkbox::new()
-									.selected(*nameOnly.read())
+									.selected(nameOnly)
 							)
 					)
 			));
@@ -118,19 +104,11 @@ impl Component for AchievementsFilter
 
 impl AchievementsFilter
 {
-	pub fn new(
-		caseSensitive: impl Into<Writable<bool>>,
-		locked: impl Into<Writable<bool>>,
-		nameOnly: impl Into<Writable<bool>>,
-		search: impl Into<Writable<String>>
-	) -> Self
+	pub fn new(search: impl Into<Writable<String>>) -> Self
 	{
 		return Self
 		{
-			caseSensitive: caseSensitive.into(),
-			locked: locked.into(),
 			margin: Default::default(),
-			nameOnly: nameOnly.into(),
 			search: search.into(),
 			width: Default::default(),
 		};

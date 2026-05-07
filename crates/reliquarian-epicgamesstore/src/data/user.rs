@@ -22,15 +22,16 @@ pub struct EgsUser
 
 impl Filterable<EgsGame> for EgsUser
 {
-	fn filter(&self, filter: impl Into<FilterCriteria>) -> Vec<EgsGame>
+	fn filter(&self, text: impl Into<String>, filter: impl Into<FilterCriteria>) -> Vec<EgsGame>
 	{
 		let filter = filter.into();
+		let text = text.into();
 		
 		let caseSensitive = filter.caseSensitive;
 		let search = match caseSensitive
 		{
-			false => filter.text.to_lowercase(),
-			true => filter.text.clone(),
+			false => text.to_lowercase(),
+			true => text.clone(),
 		};
 		
 		let mut games = self.games.iter()

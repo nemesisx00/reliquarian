@@ -8,9 +8,10 @@ use data::constants::{BorderColor, ButtonBackgroundColor, CornerRadius,
 	RetroAchievementsProgressColorBackground,
 	RetroAchievementsProgressColorCasual,
 	RetroAchievementsProgressColorHardcore};
-use data::enums::GamePlatforms;
-use data::filter::{FilterCriteria, Filterable};
+use data::enums::{DataChannel, GamePlatforms};
+use data::filter::Filterable;
 use data::io::{FileLocation, filePathExists, getImagePath};
+use data::settings::AppSettings;
 use freya::icons::lucide;
 use freya::prelude::{AccessibilityExt, Alignment, Border, BorderAlignment,
 	ChildrenExt, Code, Color, Component, ContainerExt, ContainerSizeExt,
@@ -35,20 +36,16 @@ impl Component for GameList
 {
 	fn render(&self) -> impl IntoElement
 	{
+		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
 		let user = use_radio::<RetroAchievementsUser, GamePlatforms>(GamePlatforms::RetroAchievements);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		let caseSensitive = use_state(bool::default);
-		let nameOnly = use_state(bool::default);
 		let search = use_state(String::default);
 		
-		let games = user.read().filter(FilterCriteria
-		{
-			caseSensitive: caseSensitive(),
-			nameOnly: nameOnly(),
-			text: search.read().clone(),
-			..Default::default()
-		});
+		let games = user.read().filter(
+			search.read().clone(),
+			appSettings.read().filterCriteria
+		);
 		let gamesLength = games.len();
 		
 		return rect()
@@ -76,9 +73,9 @@ impl Component for GameList
 			)
 			
 			.child(
-				GamesFilter::new(caseSensitive, search)
+				GamesFilter::new(search)
 					.margin(Gaps::new(5.0, 0.0, 0.0, 0.0))
-					.nameOnly(nameOnly)
+					.nameOnly(true)
 					.width(Size::percent(50.0))
 			)
 			

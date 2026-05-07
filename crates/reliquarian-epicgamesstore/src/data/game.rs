@@ -46,9 +46,10 @@ pub struct EgsGame
 
 impl Filterable<EgsAchievement> for EgsGame
 {
-	fn filter(&self, filter: impl Into<FilterCriteria>) -> Vec<EgsAchievement>
+	fn filter(&self, text: impl Into<String>, filter: impl Into<FilterCriteria>) -> Vec<EgsAchievement>
 	{
 		let filter = filter.into();
+		let text = text.into();
 		
 		let caseSensitive = filter.caseSensitive;
 		let locked = filter.locked;
@@ -56,8 +57,8 @@ impl Filterable<EgsAchievement> for EgsGame
 		
 		let search = match caseSensitive
 		{
-			false => filter.text.to_lowercase(),
-			true => filter.text.clone(),
+			false => text.to_lowercase(),
+			true => text.clone(),
 		};
 		
 		let mut achievements = self.achievements.iter()

@@ -2,9 +2,10 @@ use std::path::PathBuf;
 use components::button::icon::IconButton;
 use components::input::filter::AchievementsFilter;
 use data::constants::{Path_Games, TextColor};
-use data::enums::GamePlatforms;
-use data::filter::{FilterCriteria, Filterable};
+use data::enums::{DataChannel, GamePlatforms};
+use data::filter::Filterable;
 use data::io::{FileLocation, filePathExists, getImagePath};
+use data::settings::AppSettings;
 use freya::icons::lucide;
 use freya::prelude::{Alignment, ChildrenExt, Code, Component, ContainerExt,
 	ContainerSizeExt, ContainerWithContentExt, Content, Direction, Event,
@@ -30,29 +31,22 @@ impl Component for GameElement
 {
 	fn render(&self) -> impl IntoElement
 	{
+		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
 		let mut selectedGameId = use_radio::<Option<String>, GamePlatforms>(GamePlatforms::Rpcs3);
 		let settings = use_radio::<Rpcs3Settings, GamePlatforms>(GamePlatforms::Rpcs3);
 		let mut user = use_radio::<Rpcs3User, GamePlatforms>(GamePlatforms::Rpcs3);
 		
 		let mut scrollConroller = use_scroll_controller(ScrollConfig::default);
-		
-		let caseSensitive = use_state(bool::default);
-		let locked = use_state(bool::default);
-		let nameOnly = use_state(bool::default);
 		let search = use_state(String::default);
 		
 		let game = user.read()
 			.getGame(self.npCommId.clone())
 			.unwrap_or_default();
 		
-		let trophies = game.filter(FilterCriteria
-		{
-			caseSensitive: caseSensitive(),
-			locked: locked(),
-			nameOnly: nameOnly(),
-			text: search.read().clone(),
-			..Default::default()
-		});
+		let trophies = game.filter(
+			search.read().clone(),
+			appSettings.read().filterCriteria
+		);
 		let trophiesLength = trophies.len();
 		
 		let iconPath = getImagePath(&FileLocation
@@ -124,12 +118,7 @@ impl Component for GameElement
 			)
 			
 			.child(
-				AchievementsFilter::new(
-					caseSensitive,
-					locked,
-					nameOnly,
-					search
-				)
+				AchievementsFilter::new(search)
 					.margin(Gaps::new(5.0, 0.0, 0.0, 0.0))
 					.width(Size::percent(50.0))
 			)

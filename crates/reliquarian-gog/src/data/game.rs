@@ -57,9 +57,10 @@ pub struct Game
 
 impl Filterable<GogAchievement> for Game
 {
-	fn filter(&self, filter: impl Into<FilterCriteria>) -> Vec<GogAchievement>
+	fn filter(&self, text: impl Into<String>, filter: impl Into<FilterCriteria>) -> Vec<GogAchievement>
 	{
 		let filter = filter.into();
+		let text = text.into();
 		
 		let caseSensitive = filter.caseSensitive;
 		let locked = filter.locked;
@@ -67,8 +68,8 @@ impl Filterable<GogAchievement> for Game
 		
 		let search = match caseSensitive
 		{
-			false => filter.text.to_lowercase(),
-			true => filter.text.clone(),
+			false => text.to_lowercase(),
+			true => text.clone(),
 		};
 		
 		let mut achievements = self.achievements.iter()

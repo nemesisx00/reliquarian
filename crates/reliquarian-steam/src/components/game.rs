@@ -3,8 +3,9 @@ use components::button::icon::IconButton;
 use components::input::filter::AchievementsFilter;
 use data::constants::{CornerRadius, FileName_GameHeader, Path_Games};
 use data::enums::{DataChannel, GamePlatforms};
-use data::filter::{FilterCriteria, Filterable};
+use data::filter::Filterable;
 use data::io::{FileLocation, filePathExists, getImagePath};
+use data::settings::AppSettings;
 use freya::icons::lucide;
 use freya::prelude::{Alignment, ChildrenExt, Code, Component, ContainerExt,
 	ContainerSizeExt, ContainerWithContentExt, Content, Direction, Event,
@@ -30,29 +31,22 @@ impl Component for GameElement
 {
 	fn render(&self) -> impl IntoElement
 	{
+		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
 		let user = use_radio::<SteamUser, GamePlatforms>(GamePlatforms::Steam);
 		let rateLimiter = use_radio::<RateLimiter, DataChannel>(DataChannel::RateLimiter);
 		let mut requestEvent = use_radio::<RequestEvent, DataChannel>(DataChannel::RateLimiter);
 		let mut selectedGameId = use_radio::<Option<u64>, GamePlatforms>(GamePlatforms::Steam);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		
-		let caseSensitive = use_state(bool::default);
-		let locked = use_state(bool::default);
-		let nameOnly = use_state(bool::default);
 		let search = use_state(String::default);
 		
 		let game = user.read().getGame(self.gameId)
 			.unwrap_or_default();
 		
-		let achievements = game.filter(FilterCriteria
-		{
-			caseSensitive: caseSensitive(),
-			locked: locked(),
-			nameOnly: nameOnly(),
-			text: search.read().clone(),
-			..Default::default()
-		});
+		let achievements = game.filter(
+			search.read().clone(),
+			appSettings.read().filterCriteria
+		);
 		let achievementsListLength = achievements.len();
 		
 		let iconPath = getImagePath(&FileLocation
@@ -133,12 +127,7 @@ impl Component for GameElement
 			)
 			
 			.child(
-				AchievementsFilter::new(
-					caseSensitive,
-					locked,
-					nameOnly,
-					search
-				)
+				AchievementsFilter::new(search)
 					.margin(Gaps::new(5.0, 0.0, 0.0, 0.0))
 					.width(Size::percent(50.0))
 			)

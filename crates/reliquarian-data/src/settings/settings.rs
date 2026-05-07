@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::enums::ActiveContent;
+use crate::filter::FilterCriteria;
 use super::platforms::EnabledPlatforms;
 use super::Language;
 
@@ -12,7 +13,7 @@ pub struct AppSettings
 	pub defaultActivePlatform: ActiveContent,
 	
 	#[serde(default)]
-	pub displayGamesWithoutAchievements: bool,
+	pub filterCriteria: FilterCriteria,
 	
 	#[serde(default)]
 	pub enabledPlatforms: EnabledPlatforms,
@@ -32,7 +33,7 @@ impl Default for AppSettings
 		return Self
 		{
 			defaultActivePlatform: Default::default(),
-			displayGamesWithoutAchievements: bool::default(),
+			filterCriteria: Default::default(),
 			enabledPlatforms: Default::default(),
 			language: Default::default(),
 			notificationDuration: DefaultNotificationDuration,

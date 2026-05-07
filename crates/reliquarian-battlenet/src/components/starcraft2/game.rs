@@ -1,6 +1,7 @@
 use components::input::filter::AchievementsFilter;
-use data::enums::GamePlatforms;
-use data::filter::{FilterCriteria, Filterable};
+use data::enums::{DataChannel, GamePlatforms};
+use data::filter::Filterable;
+use data::settings::AppSettings;
 use freya::prelude::{Alignment, ChildrenExt, Code, Component, ContainerExt,
 	ContainerSizeExt, ContainerWithContentExt, Content, Direction, Event,
 	EventHandlersExt, Gaps, IntoElement, KeyboardEventData, ScrollConfig,
@@ -27,27 +28,20 @@ impl Component for Sc2Element
 {
 	fn render(&self) -> impl IntoElement
 	{
+		let appSettings = use_radio::<AppSettings, DataChannel>(DataChannel::Settings);
 		let user = use_radio::<BattleNetUser, GamePlatforms>(GamePlatforms::BattleNet);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		
-		let caseSensitive = use_state(bool::default);
-		let locked = use_state(bool::default);
-		let nameOnly = use_state(bool::default);
 		let search = use_state(String::default);
 		
 		let profile = user.read().starcraft2
 			.clone()
 			.unwrap_or_default();
 		
-		let achievements = profile.filter(FilterCriteria
-		{
-			caseSensitive: caseSensitive(),
-			locked: locked(),
-			nameOnly: nameOnly(),
-			text: search.read().clone(),
-			..Default::default()
-		});
+		let achievements = profile.filter(
+			search.read().clone(),
+			appSettings.read().filterCriteria
+		);
 		
 		let achievementsLength = achievements.len();
 		
@@ -128,12 +122,7 @@ impl Component for Sc2Element
 							.width(Size::flex(0.5))
 							
 							.child(
-								AchievementsFilter::new(
-									caseSensitive,
-									locked,
-									nameOnly,
-									search
-								)
+								AchievementsFilter::new(search)
 									.width(Size::percent(100.0))
 							)
 							

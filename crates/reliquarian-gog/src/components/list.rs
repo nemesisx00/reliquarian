@@ -5,7 +5,7 @@ use data::constants::{BorderColor, ButtonBackgroundColor, CornerRadius,
 	FileName_GameIcon, GogProgressColor, Path_Games,
 	RetroAchievementsProgressColorBackground};
 use data::enums::{DataChannel, GamePlatforms};
-use data::filter::{FilterCriteria, Filterable};
+use data::filter::Filterable;
 use data::io::{FileLocation, filePathExists, getImagePath};
 use data::settings::AppSettings;
 use freya::prelude::{Alignment, Border, BorderAlignment, ChildrenExt, Code,
@@ -30,17 +30,12 @@ impl Component for GameList
 		let user = use_radio::<GogUser, GamePlatforms>(GamePlatforms::Gog);
 		
 		let mut scrollController = use_scroll_controller(ScrollConfig::default);
-		let caseSensitive = use_state(bool::default);
 		let search = use_state(String::default);
-		let showAll = use_state(|| appSettings.read().displayGamesWithoutAchievements);
 		
-		let games = user.read().filter(FilterCriteria
-		{
-			caseSensitive: caseSensitive(),
-			showAll: showAll(),
-			text: search.read().clone(),
-			..Default::default()
-		});
+		let games = user.read().filter(
+			search.read().clone(),
+			appSettings.read().filterCriteria
+		);
 		
 		let gamesLength = games.len();
 		
@@ -69,9 +64,9 @@ impl Component for GameList
 			)
 			
 			.child(
-				GamesFilter::new(caseSensitive, search)
+				GamesFilter::new(search)
 					.margin(Gaps::new(5.0, 0.0, 0.0, 0.0))
-					.showAll(showAll)
+					.showAll(true)
 					.width(Size::percent(50.0))
 			)
 			

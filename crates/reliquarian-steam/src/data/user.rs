@@ -35,16 +35,17 @@ pub struct SteamUser
 
 impl Filterable<Game> for SteamUser
 {
-	fn filter(&self, filter: impl Into<FilterCriteria>) -> Vec<Game>
+	fn filter(&self, text: impl Into<String>, filter: impl Into<FilterCriteria>) -> Vec<Game>
 	{
 		let filter = filter.into();
+		let text = text.into();
 		
 		let allGames = filter.showAll;
 		let caseSensitive = filter.caseSensitive;
 		let search = match caseSensitive
 		{
-			false => filter.text.to_lowercase(),
-			true => filter.text.clone(),
+			false => text.to_lowercase(),
+			true => text.clone(),
 		};
 		
 		let mut games = self.games.iter()

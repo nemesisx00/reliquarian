@@ -78,15 +78,19 @@ impl Component for SteamProfile
 							.width(Size::px(32.0))
 							.onPress(move |_| {
 								spawn(async move {
-									rateLimiter.read().pushAll(vec![
+									let mut ops = vec![
 										SteamOperation::GetPlayerSummary.into(),
-										match settings.read().enableSteamFamilyLibrary
-										{
-											false => SteamOperation::GetGameList.into(),
-											true => SteamOperation::GetSharedLibraryApps.into(),
-										},
-										SteamOperation::SaveToFile.into(),
-									]).await;
+									];
+									
+									if settings.read().enableSteamFamilyLibrary
+									{
+										ops.push(SteamOperation::GetSharedLibraryApps.into());
+									}
+									
+									ops.push(SteamOperation::GetGameList.into());
+									ops.push(SteamOperation::SaveToFile.into());
+									
+									rateLimiter.read().pushAll(ops).await;
 									
 									**requestEvent.write() = RequestEvent::Added;
 								});

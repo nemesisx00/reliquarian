@@ -78,6 +78,19 @@ impl Filterable<GogAchievement> for Game
 				false => true,
 				true => a.dateUnlocked.is_none(),
 			})
+			.cloned()
+			.collect::<Vec<_>>();
+		
+		// Primarily covers the case where the filter is set to only show locked
+		// achievements but the game is 100% so there are no locked achievements.
+		// Displaying all achievements in this case is more convenient than forcing
+		// the user to change the filter settings every time.
+		if achievements.is_empty()
+		{
+			achievements = self.achievements.clone();
+		}
+		
+		achievements = achievements.iter()
 			.filter(|a| match caseSensitive
 			{
 				false => match nameOnly

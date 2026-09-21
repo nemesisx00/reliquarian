@@ -49,6 +49,19 @@ impl Filterable<Trophy> for Game
 				false => true,
 				true => !a.unlocked,
 			})
+			.cloned()
+			.collect::<Vec<Trophy>>();
+		
+		// Primarily covers the case where the filter is set to only show locked
+		// trophies but the game is 100% so there are no locked trophies.
+		// Displaying all trophies in this case is more convenient than forcing
+		// the user to change the filter settings every time.
+		if trophies.is_empty()
+		{
+			trophies = self.trophies.clone();
+		}
+		
+		trophies = trophies.iter()
 			.filter(|a| match caseSensitive
 			{
 				false => match nameOnly

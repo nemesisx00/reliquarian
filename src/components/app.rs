@@ -137,7 +137,7 @@ impl App for LocalAchievementsApp
 			
 			.child(
 				ProfileElement::new()
-					.offset(64.0)
+					.offset(64f32)
 			)
 			
 			.child(

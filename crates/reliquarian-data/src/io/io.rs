@@ -37,7 +37,7 @@ pub async fn cacheImage(
 		.with_guessed_format()
 			.context("Error guessing image format based on response")?
 		.decode()
-			.context("Error decoding response as an image")?;
+			.context(format!("Error decoding response as an image: {}", url))?;
 	
 	saveImageToCache(destination, response.as_ref())
 		.context(format!("Error saving image to file from url: {}", url))?;
